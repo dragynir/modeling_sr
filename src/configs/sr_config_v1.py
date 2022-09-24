@@ -17,6 +17,9 @@ class TrainingConfig:
     output_dir = 'tomo-128'  # the model namy locally and on the HF Hub
     seed = 42
 
+    # dataset
+    data_path = ''
+
     # diffusion
     num_train_timesteps = 1000
 
