@@ -3,7 +3,7 @@ from typing import List
 from PIL import Image
 
 
-def make_grid(images: List[Image]):
+def make_grid(images):
     cols = len(images) // 2
     rows = cols + 1
     w, h = images[0].size

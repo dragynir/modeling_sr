@@ -43,20 +43,23 @@ class SuperResolutionDataset(Dataset):
 
         hr_image = cv2.imread(data_point.path)
 
-        hr_image = self.crop_hr(hr_image)["image"]
+        hr_image = self.crop_hr(image=hr_image)["image"]
 
         if self.mode == "train":
-            hr_image = self.augmentations(hr_image)["image"]
+            hr_image = self.augmentations(image=hr_image)["image"]
 
         # downsample image to remove details
         lr_image = cv2.resize(hr_image, (self.lr_size, self.lr_size))
         # resize image back to fit hr_image size
         lr_image = cv2.resize(lr_image, (self.hr_size, self.hr_size))
 
-        lr_image = self.post_process(lr_image)["image"]
-        hr_image = self.post_process(hr_image)["image"]
+        lr_image = self.post_process(image=lr_image)["image"]
+        hr_image = self.post_process(image=hr_image)["image"]
 
-        result = {"hr_image": hr_image, "lr_image": lr_image}
+        result = {
+            "hr_image": hr_image[0, ...].unsqueeze(0),
+            "lr_image": lr_image[0, ...].unsqueeze(0),
+        }
 
         return result
 

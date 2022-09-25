@@ -80,15 +80,18 @@ class SRPipeline(object):
             input_key=["conditioned_noise", "timesteps"],
             output_key=["noise_pred"],
             target_key=["noise_target"],
-            loss_key=["loss"],
+            loss_key="loss",
         )
 
         callbacks = [
             dl.BatchTransformCallback(
-                input_key=["lr_image", "hr_image"],
+                input_key=["hr_image", "lr_image"],
                 output_key=["conditioned_noise", "timesteps", "noise_target"],
                 transform=runner.generate_noise,
                 scope="on_batch_start",
+            ),
+            dl.CriterionCallback(
+                input_key="noise_pred", target_key="noise_target", metric_key="loss"
             ),
         ]
 
@@ -105,14 +108,16 @@ class SRPipeline(object):
         )
 
 
-class CustomRunner(dl.Runner):
+class CustomRunner(dl.SupervisedRunner):
+
     def __init__(self, noise_scheduler, config, **kwargs):
-        super(CustomRunner, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.noise_scheduler = noise_scheduler
         self.config = config
 
-    def predict_batch(self, batch: Mapping[str, Any], **kwargs) -> Mapping[str, Any]:
-        return self.model(batch["conditioned_noise"], batch["timesteps"])["sample"]
+    def forward(self, batch: Mapping[str, Any], **kwargs) -> Mapping[str, Any]:
+        noise_pred = self.model(batch["conditioned_noise"], batch["timesteps"])["sample"]
+        return {'noise_pred': noise_pred}
 
     def handle_batch(self, batch):
         if self.is_train_loader:
@@ -132,12 +137,8 @@ class CustomRunner(dl.Runner):
         image_grid = make_grid(sr_images)
 
     def generate_noise(
-        self, batch
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor,]:
-        # Unpack the data. Its structure depends on your model and
-        # on what you pass to `train()`.
-        hr_images = batch["hr_image"]
-        lr_images = batch["lr_image"]
+        self, hr_images, lr_images,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
 
         # Sample noise to add to the images
         noise = torch.randn(hr_images.shape).to(hr_images.device)
