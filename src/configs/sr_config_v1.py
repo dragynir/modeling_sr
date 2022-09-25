@@ -3,6 +3,10 @@ from dataclasses import dataclass
 
 @dataclass
 class TrainingConfig:
+
+    project = 'super_resolution_tomo_diffusion'
+    name = 'experiment0'
+
     image_size = 256  # the generated image resolution
     lr_image_size = 64
     train_batch_size = 16
@@ -14,8 +18,10 @@ class TrainingConfig:
     save_image_epochs = 1
     save_model_epochs = 30
     mixed_precision = 'fp16'  # `no` for float32, `fp16` for automatic mixed precision
-    output_dir = 'tomo-128'  # the model namy locally and on the HF Hub
     seed = 42
+
+    # system
+    num_workers = 2
 
     # dataset
     data_path = ''
