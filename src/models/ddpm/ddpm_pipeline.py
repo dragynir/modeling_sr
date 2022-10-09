@@ -117,6 +117,7 @@ class DDPMPipeline(DiffusionPipeline):
         generator: Optional[torch.Generator] = None,
         output_type: Optional[str] = "pil",
         return_dict: bool = True,
+        num_train_timesteps: int = 1000,
         **kwargs,
     ) -> Union[ImagePipelineOutput, Tuple]:
         r"""
@@ -163,7 +164,7 @@ class DDPMPipeline(DiffusionPipeline):
         image = image.to(self.device)
 
         # set step values
-        self.scheduler.set_timesteps(1000)
+        self.scheduler.set_timesteps(num_train_timesteps)
 
         for t in self.scheduler.timesteps:
             # 1. predict noise model_output

@@ -1,5 +1,4 @@
-from typing import List
-
+import numpy as np
 from PIL import Image
 
 
@@ -10,4 +9,4 @@ def make_grid(images):
     grid = Image.new('RGB', size=(cols*w, rows*h))
     for i, image in enumerate(images):
         grid.paste(image, box=(i%cols*w, i//cols*h))
-    return grid
+    return np.array(grid)

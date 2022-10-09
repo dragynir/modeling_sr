@@ -6,10 +6,12 @@ from catalyst import dl
 from diffusers.optimization import get_cosine_schedule_with_warmup
 import pandas as pd
 
+from models.ddpm.ddpm_pipeline import DDPMPipeline
 from models.ddpm.sheduler import create_noise_scheduler
 from models.unet2d import UNet2D
 from data.dataset import create_dataset, create_dataloader
 from data.augmentations import create_default_augmentations
+from visualization.plot import make_grid
 
 
 class SRPipeline(object):
@@ -59,6 +61,7 @@ class SRPipeline(object):
 
         train_loader = self.create_train_loader(config)
         valid_loader = self.create_val_loader(config)
+        vis_loader = self.create_val_loader(config)
 
         lr_scheduler = get_cosine_schedule_with_warmup(
             optimizer=optimizer,
@@ -91,6 +94,7 @@ class SRPipeline(object):
             dl.CriterionCallback(
                 input_key="noise_pred", target_key="noise_target", metric_key="loss"
             ),
+            VisualizationCallback(vis_loader),
         ]
 
         runner.train(
@@ -126,29 +130,8 @@ class CustomRunner(dl.SupervisedRunner):
     def handle_valid_batch(self, batch):
         # hr_image, lr_image, conditioned_noise, timesteps, noise_target
 
-        noise_target = batch["noise_target"]
         noise_pred = self.forward(batch)
         self.batch.update(noise_pred)
-
-        # self.batch_metrics = {
-        #     name: metric(noise_pred, noise_target) for name, metric in self.valid_metrics.items()
-        # }
-
-        # TODO вычисляем mse для шума
-        # self.batch_metrics
-        # TODO на каждой эпохе логируем картинку и считаем ssim, psnr
-
-        # pass
-        # TODO логаем hr,lr,sr картинки
-        # pipeline = DDPMPipeline(unet=self.model, scheduler=self.noise_scheduler)
-        #
-        # sr_images = pipeline(
-        #     batch_size=self.config.eval_batch_size,
-        #     generator=torch.manual_seed(self.config.seed),
-        #     condition_images=batch["lr_image"],
-        # )["images"]
-        #
-        # image_grid = make_grid(sr_images)
 
     def generate_noise(
         self,
@@ -185,3 +168,23 @@ class CustomRunner(dl.SupervisedRunner):
                 log_epoch_metrics=True,
             ),
         }
+
+
+class VisualizationCallback(dl.Callback):
+    def __init__(self, vis_loader):
+        super().__init__(order=dl.CallbackOrder.External)
+        self.batch = next(iter(vis_loader))
+
+    def on_epoch_end(self, runner: CustomRunner):
+        pipeline = DDPMPipeline(unet=runner.model, scheduler=runner.noise_scheduler)
+
+        sr_images = pipeline(
+            batch_size=runner.config.eval_batch_size,
+            generator=torch.manual_seed(runner.config.seed),
+            condition_images=self.batch["lr_image"],
+            num_train_timesteps=runner.config.num_train_timesteps,
+        )["images"]
+
+        image_grid = make_grid(sr_images)
+
+        runner.loggers['wandb'].log_image('generation', image_grid, runner, scope='batch')
