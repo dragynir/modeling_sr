@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
+
 
 @dataclass
 class TrainingConfig:
@@ -20,7 +19,7 @@ class TrainingConfig:
     lr_image_size = 64
     num_epochs = 50
     train_batch_size = 1
-    eval_batch_size = 1  # how many images to sample during evaluation
+    eval_batch_size = 1 # how many images to sample during evaluation
     gradient_accumulation_steps = 1
     learning_rate = 1e-4
     lr_warmup_steps = 500

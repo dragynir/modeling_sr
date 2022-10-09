@@ -13,6 +13,7 @@ from data.dataset import create_dataset, create_dataloader
 from data.augmentations import create_default_augmentations
 from visualization.plot import make_grid
 
+# CUDA_VISIBLE_DEVICES="0" python run.py
 
 class SRPipeline(object):
     @staticmethod
@@ -61,7 +62,8 @@ class SRPipeline(object):
 
         train_loader = self.create_train_loader(config)
         valid_loader = self.create_val_loader(config)
-        vis_loader = self.create_val_loader(config)
+        # vis_loader = self.create_val_loader(config)
+        print(len(train_loader), len(valid_loader))
 
         lr_scheduler = get_cosine_schedule_with_warmup(
             optimizer=optimizer,
@@ -105,8 +107,6 @@ class SRPipeline(object):
             scheduler=lr_scheduler,
             callbacks=callbacks,
             num_epochs=config.num_epochs,
-            verbose=True,  # you can pass True for more precise training process logging
-            timeit=False,  # you can pass True to measure execution time of different parts of train process
         )
 
 
@@ -118,7 +118,7 @@ class CustomRunner(dl.SupervisedRunner):
         self.valid_metrics = {"valid_mse": torch.nn.MSELoss()}
 
     def forward(self, batch: Mapping[str, Any], **kwargs) -> Mapping[str, Any]:
-        noise_pred = self.model(batch["conditioned_noise"], batch["timesteps"])["sample"]
+        noise_pred = self.model(batch["conditioned_noise"], batch["timesteps"])['sample']
         return {"noise_pred": noise_pred}
 
     def handle_batch(self, batch):
