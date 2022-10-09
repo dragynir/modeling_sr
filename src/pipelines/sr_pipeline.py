@@ -129,7 +129,7 @@ class CustomRunner(dl.SupervisedRunner):
 
     def handle_valid_batch(self, batch):
         # hr_image, lr_image, conditioned_noise, timesteps, noise_target
-
+        
         noise_pred = self.forward(batch)
         self.batch.update(noise_pred)
 

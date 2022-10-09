@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 @dataclass
 class TrainingConfig:
@@ -9,7 +10,8 @@ class TrainingConfig:
     experiment = 'experiment0'
 
     # dataset
-    data_path = r"C:\Users\dkoro\PythonProjects\SuperResolution\modeling\data\data.csv"
+    # data_path = r"C:\Users\dkoro\PythonProjects\SuperResolution\modeling\data\data.csv"
+    data_path = "/home/d_korostelev/Projects/super_resolution/modeling_sr/data/overfit/data.csv"
 
     # hyperparameters
     in_channels = 2

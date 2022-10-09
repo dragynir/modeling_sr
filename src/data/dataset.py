@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, Dict, Optional
+from typing import Dict, Optional
 
 import cv2
 import torch
@@ -17,7 +17,7 @@ class SuperResolutionDataset(Dataset):
         hr_image_size: int,
         lr_image_size: int,
         augmentations: Compose,
-        mode: Literal["train", "valid"] = "train",
+        mode: str = "train",
     ) -> None:
         self.df = df
         self.augmentations = augmentations
@@ -68,7 +68,7 @@ def create_dataset(
     df: pd.DataFrame,
     config: dataclass,
     augmentations: Optional[Compose],
-    mode: Literal["train", "valid"] = "train",
+    mode: str = "train",
 ) -> SuperResolutionDataset:
     """Create dataset from data.csv DataFrame"""
     return SuperResolutionDataset(df, config.image_size, config.lr_image_size, augmentations, mode)
