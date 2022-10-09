@@ -62,8 +62,7 @@ class SRPipeline(object):
 
         train_loader = self.create_train_loader(config)
         valid_loader = self.create_val_loader(config)
-        # vis_loader = self.create_val_loader(config)
-        print(len(train_loader), len(valid_loader))
+        vis_loader = self.create_val_loader(config)
 
         lr_scheduler = get_cosine_schedule_with_warmup(
             optimizer=optimizer,
