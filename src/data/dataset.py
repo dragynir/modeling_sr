@@ -38,7 +38,7 @@ class SuperResolutionDataset(Dataset):
         return len(self.df)
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
-
+        # TODO добавить чтение tiff изображений
         data_point = self.df.iloc[idx]
 
         hr_image = cv2.imread(data_point.path)

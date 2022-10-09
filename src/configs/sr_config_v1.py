@@ -6,7 +6,7 @@ class TrainingConfig:
 
     # project
     project = 'super_resolution_tomo_diffusion'
-    name = 'experiment0'
+    experiment = 'experiment0'
 
     # dataset
     data_path = r"C:\Users\dkoro\PythonProjects\SuperResolution\modeling\data\data.csv"
@@ -16,9 +16,9 @@ class TrainingConfig:
     out_channels = 1
     image_size = 256  # the generated image resolution
     lr_image_size = 64
+    num_epochs = 50
     train_batch_size = 1
     eval_batch_size = 1  # how many images to sample during evaluation
-    num_epochs = 50
     gradient_accumulation_steps = 1
     learning_rate = 1e-4
     lr_warmup_steps = 500
