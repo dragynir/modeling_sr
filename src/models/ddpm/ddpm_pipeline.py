@@ -10,7 +10,7 @@ import PIL
 from typing import List, Optional, Union, Any
 import numpy as np
 import dataclasses as dc
-
+from tqdm import tqdm
 
 class BaseOutput(OrderedDict):
     """
@@ -113,7 +113,7 @@ class DDPMPipeline(DiffusionPipeline):
     def __call__(
         self,
         batch_size: int = 1,
-        condition_images=None,
+        image_condition=None,
         generator: Optional[torch.Generator] = None,
         output_type: Optional[str] = "pil",
         return_dict: bool = True,
@@ -150,7 +150,6 @@ class DDPMPipeline(DiffusionPipeline):
             self.to(device)
 
         # image condition
-        image_condition = condition_images[0]
         image_condition = image_condition.unsqueeze(0)
 
         # Sample gaussian noise to begin loop
@@ -166,7 +165,7 @@ class DDPMPipeline(DiffusionPipeline):
         # set step values
         self.scheduler.set_timesteps(num_train_timesteps)
 
-        for t in self.scheduler.timesteps:
+        for t in tqdm(self.scheduler.timesteps):
             # 1. predict noise model_output
             input_condition = torch.cat((image, image_condition), dim=1)
             # print(image_condition.shape, image.shape)
@@ -179,6 +178,8 @@ class DDPMPipeline(DiffusionPipeline):
         image = (image / 2 + 0.5).clamp(0, 1)
         image = image.cpu().permute(0, 2, 3, 1).numpy()
         if output_type == "pil":
+            if image.shape[-1] == 1:
+                image = np.concatenate((image, image, image), axis=-1)
             image = self.numpy_to_pil(image)
 
         if not return_dict:

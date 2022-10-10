@@ -11,7 +11,9 @@ from models.ddpm.sheduler import create_noise_scheduler
 from models.unet2d import UNet2D
 from data.dataset import create_dataset, create_dataloader
 from data.augmentations import create_default_augmentations
-from visualization.plot import make_grid
+from visualization.plot import make_sr_grid
+
+from utils.debug import get_debug_dataloaders
 
 # CUDA_VISIBLE_DEVICES="0" python run.py
 
@@ -59,10 +61,14 @@ class SRPipeline(object):
 
         model = UNet2D.create_from_config(config)
         optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
-
-        train_loader = self.create_train_loader(config)
-        valid_loader = self.create_val_loader(config)
-        vis_loader = self.create_val_loader(config)
+        
+        if config.debug:
+            print('Use debug dataloaders...')
+            train_loader, valid_loader, vis_loader = get_debug_dataloaders(config)
+        else:
+            train_loader = self.create_train_loader(config)
+            valid_loader = self.create_val_loader(config)
+            vis_loader = self.create_val_loader(config)
 
         lr_scheduler = get_cosine_schedule_with_warmup(
             optimizer=optimizer,
@@ -106,6 +112,8 @@ class SRPipeline(object):
             scheduler=lr_scheduler,
             callbacks=callbacks,
             num_epochs=config.num_epochs,
+            verbose=True,  # you can pass True for more precise training process logging
+            timeit=False,  # you can pass True to measure execution time of different parts of train process
         )
 
 
@@ -173,17 +181,27 @@ class VisualizationCallback(dl.Callback):
     def __init__(self, vis_loader):
         super().__init__(order=dl.CallbackOrder.External)
         self.batch = next(iter(vis_loader))
+        self.epoch = 0
 
     def on_epoch_end(self, runner: CustomRunner):
-        pipeline = DDPMPipeline(unet=runner.model, scheduler=runner.noise_scheduler)
+        
+        if self.epoch % 20 == 0:
+            pipeline = DDPMPipeline(unet=runner.model, scheduler=runner.noise_scheduler)
 
-        sr_images = pipeline(
-            batch_size=runner.config.eval_batch_size,
-            generator=torch.manual_seed(runner.config.seed),
-            condition_images=self.batch["lr_image"],
-            num_train_timesteps=runner.config.num_train_timesteps,
-        )["images"]
+            image_condition = self.batch["lr_image"][0]
+            high_resolution = self.batch["hr_image"][0]
 
-        image_grid = make_grid(sr_images)
+            sr_images = pipeline(
+                batch_size=runner.config.eval_batch_size,
+                generator=torch.manual_seed(runner.config.seed),
+                image_condition=image_condition,
+                num_train_timesteps=runner.config.num_train_timesteps,
+            )["images"]
 
-        runner.loggers['wandb'].log_image('generation', image_grid, runner, scope='batch')
+            sr_image = sr_images[0]
+
+            image_grid = make_sr_grid(image_condition, high_resolution, sr_image)
+
+            runner.loggers['wandb'].log_image('generation', image_grid, runner, scope='batch')
+
+        self.epoch+=1
