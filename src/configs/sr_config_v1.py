@@ -7,6 +7,7 @@ class TrainingConfig:
     # project
     project = 'super_resolution_tomo_diffusion'
     experiment = 'experiment0' 
+    checkpoints_path = '/home/d_korostelev/Projects/super_resolution/modeling_sr/checkpoints/'
     debug = True # use simple dataset to test super resolution
 
     # dataset
@@ -17,7 +18,7 @@ class TrainingConfig:
     in_channels = 2
     out_channels = 1
     image_size = 128  # the generated image resolution
-    lr_image_size = 32
+    lr_image_size = 64
     num_epochs = 100
     train_batch_size = 16
     eval_batch_size = 1 # how many images to sample during evaluation

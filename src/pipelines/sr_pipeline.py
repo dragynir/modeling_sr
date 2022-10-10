@@ -14,6 +14,7 @@ from data.augmentations import create_default_augmentations
 from visualization.plot import make_sr_grid
 
 from utils.debug import get_debug_dataloaders
+import os
 
 # CUDA_VISIBLE_DEVICES="0" python run.py
 
@@ -100,6 +101,11 @@ class SRPipeline(object):
             ),
             dl.CriterionCallback(
                 input_key="noise_pred", target_key="noise_target", metric_key="loss"
+            ),
+            dl.CheckpointCallback(
+                logdir=os.path.join(config.checkpoints_path, config.experiment),
+                loader_key="valid", metric_key="loss", 
+                minimize=True, topk=1
             ),
             VisualizationCallback(vis_loader),
         ]

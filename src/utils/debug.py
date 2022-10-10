@@ -28,7 +28,6 @@ def get_debug_dataloaders(config):
     preprocess_high_res = transforms.Compose(
         [
             transforms.Resize((config.image_size, config.image_size)),
-            transforms.RandomHorizontalFlip(),
             transforms.Grayscale(),
             transforms.ToTensor(),
             transforms.Normalize([0.5], [0.5]),
@@ -38,7 +37,6 @@ def get_debug_dataloaders(config):
         [
             transforms.Resize((config.lr_image_size, config.lr_image_size)),
             transforms.Resize((config.image_size, config.image_size)),
-            transforms.RandomHorizontalFlip(),
             transforms.Grayscale(),
             transforms.ToTensor(),
             transforms.Normalize([0.5], [0.5]),

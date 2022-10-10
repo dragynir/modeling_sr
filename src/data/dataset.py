@@ -29,8 +29,8 @@ class SuperResolutionDataset(Dataset):
 
         self.post_process = Compose(
             [
-                A.Normalize([0.5], 0.5),  # [-1, 1] normalization
                 ToTensorV2(),
+                A.Normalize([0.5], [0.5]),  # [-1, 1] normalization
             ]
         )
 
