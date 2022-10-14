@@ -21,6 +21,7 @@ from metrics.image_metrics import SSIM
 # CUDA_VISIBLE_DEVICES="0" python run.py
 # CUDA_VISIBLE_DEVICES="0" nohup python run.py &
 
+
 class SRPipeline(object):
     @staticmethod
     def create_train_loader(config):
@@ -86,7 +87,6 @@ class SRPipeline(object):
 
         # runner
         loaders = OrderedDict({"train": train_loader, "valid": valid_loader})
-        criterion = torch.nn.MSELoss()
 
         runner = CustomRunner(
             noise_scheduler=noise_scheduler,
@@ -130,7 +130,7 @@ class SRPipeline(object):
             model=model,
             optimizer=optimizer,
             loaders=loaders,
-            criterion=criterion,
+            criterion=config.criterion,
             scheduler=lr_scheduler,
             callbacks=callbacks,
             num_epochs=config.num_epochs,
@@ -200,14 +200,15 @@ class CustomRunner(dl.SupervisedRunner):
 
 
 class VisualizationCallback(dl.Callback):
-    def __init__(self, vis_loader):
+    def __init__(self, vis_loader, every_epoch=20):
         super().__init__(order=dl.CallbackOrder.External)
         self.batch = next(iter(vis_loader))
+        self.every_epoch = every_epoch
         self.epoch = 0
 
     def on_epoch_end(self, runner: CustomRunner):
         
-        if self.epoch % 20 == 0:
+        if self.epoch % self.every_epoch == 0:
             pipeline = DDPMPipeline(unet=runner.model, scheduler=runner.noise_scheduler)
 
             image_condition = self.batch["lr_image"][0]

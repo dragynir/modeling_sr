@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+import torch
+
 
 @dataclass
 class TrainingConfig:
@@ -9,6 +11,7 @@ class TrainingConfig:
     experiment = 'experiment0' 
     checkpoints_path = '/home/d_korostelev/Projects/super_resolution/modeling_sr/checkpoints/'
     debug = True # use simple dataset to test super resolution
+    criterion = torch.nn.MSELoss()
 
     # dataset
     # data_path = r"C:\Users\dkoro\PythonProjects\SuperResolution\modeling\data\data.csv"
