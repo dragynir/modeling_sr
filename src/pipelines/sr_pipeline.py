@@ -3,6 +3,7 @@ from typing import Mapping, Any, Tuple
 
 import torch
 from catalyst import dl
+from catalyst.utils import set_global_seed
 from diffusers.optimization import get_cosine_schedule_with_warmup
 import pandas as pd
 
@@ -17,6 +18,7 @@ from utils.debug import get_debug_dataloaders
 import os
 
 # CUDA_VISIBLE_DEVICES="0" python run.py
+# CUDA_VISIBLE_DEVICES="0" nohup python run.py &
 
 class SRPipeline(object):
     @staticmethod
@@ -59,6 +61,8 @@ class SRPipeline(object):
         )
 
     def run(self, config):
+        
+        set_global_seed(config.seed)
 
         model = UNet2D.create_from_config(config)
         optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)

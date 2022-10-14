@@ -19,7 +19,7 @@ class TrainingConfig:
     out_channels = 1
     image_size = 128  # the generated image resolution
     lr_image_size = 64
-    num_epochs = 100
+    num_epochs = 1000
     train_batch_size = 16
     eval_batch_size = 1 # how many images to sample during evaluation
     gradient_accumulation_steps = 1
