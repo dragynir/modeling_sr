@@ -16,6 +16,7 @@ from visualization.plot import make_sr_grid
 
 from utils.debug import get_debug_dataloaders
 import os
+from metrics.image_metrics import SSIM
 
 # CUDA_VISIBLE_DEVICES="0" python run.py
 # CUDA_VISIBLE_DEVICES="0" nohup python run.py &
@@ -96,23 +97,34 @@ class SRPipeline(object):
             loss_key="loss",
         )
 
-        callbacks = [
-            dl.BatchTransformCallback(
+        callbacks = OrderedDict({
+            "batch_transform": dl.BatchTransformCallback(
                 input_key=["hr_image", "lr_image"],
                 output_key=["conditioned_noise", "timesteps", "noise_target"],
                 transform=runner.generate_noise,
                 scope="on_batch_start",
             ),
-            dl.CriterionCallback(
+            "criterion": dl.CriterionCallback(
                 input_key="noise_pred", target_key="noise_target", metric_key="loss"
             ),
-            dl.CheckpointCallback(
+            "model_checkpoint": dl.CheckpointCallback(
                 logdir=os.path.join(config.checkpoints_path, config.experiment),
-                loader_key="valid", metric_key="loss", 
-                minimize=True, topk=1
+                loader_key="valid", metric_key="loss",
+                minimize=True, topk=1,
+                resume_model=None,  # set it to start from pretrained model
             ),
-            VisualizationCallback(vis_loader),
-        ]
+            "runner_checkpoint": dl.CheckpointCallback(
+                logdir=os.path.join(config.checkpoints_path, config.experiment),
+                loader_key="valid", metric_key="loss",
+                minimize=True, topk=1, mode="runner",
+                resume_runner=None  # set it if experiment failed to resume training
+            ),
+            "ssim": dl.LoaderMetricCallback(  # TODO
+                metric=SSIM,
+                input_key="noise_pre", target_key="noise_target",
+            ),
+            "visualization": VisualizationCallback(vis_loader),
+        })
 
         runner.train(
             model=model,
