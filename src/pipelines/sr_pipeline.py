@@ -119,10 +119,6 @@ class SRPipeline(object):
                 minimize=True, topk=1, mode="runner",
                 resume_runner=None  # set it if experiment failed to resume training
             ),
-            "ssim": dl.LoaderMetricCallback(  # TODO
-                metric=SSIM,
-                input_key="noise_pre", target_key="noise_target",
-            ),
             "visualization": VisualizationCallback(vis_loader),
         })
 
@@ -200,7 +196,7 @@ class CustomRunner(dl.SupervisedRunner):
 
 
 class VisualizationCallback(dl.Callback):
-    def __init__(self, vis_loader, every_epoch=20):
+    def __init__(self, vis_loader, every_epoch=2):
         super().__init__(order=dl.CallbackOrder.External)
         self.batch = next(iter(vis_loader))
         self.every_epoch = every_epoch
@@ -210,9 +206,10 @@ class VisualizationCallback(dl.Callback):
         
         if self.epoch % self.every_epoch == 0:
             pipeline = DDPMPipeline(unet=runner.model, scheduler=runner.noise_scheduler)
-
-            image_condition = self.batch["lr_image"][0]
-            high_resolution = self.batch["hr_image"][0]
+            
+            ind = 0
+            image_condition = self.batch["lr_image"][ind]
+            high_resolution = self.batch["hr_image"][ind]
 
             sr_images = pipeline(
                 batch_size=runner.config.eval_batch_size,
@@ -225,6 +222,6 @@ class VisualizationCallback(dl.Callback):
 
             image_grid = make_sr_grid(image_condition, high_resolution, sr_image)
 
-            runner.loggers['wandb'].log_image('generation', image_grid, runner, scope='batch')
+            runner.loggers['wandb'].log_image(f'generation_{ind}', image_grid, runner, scope='batch')
 
         self.epoch+=1

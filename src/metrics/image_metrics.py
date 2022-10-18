@@ -15,7 +15,7 @@ from torchmetrics.utilities.data import dim_zero_cat
 from catalyst import dl
 
 
-class SSIM(Metric, dl.IMetricCallback):
+class SSIM(Metric):
     """Computes Structual Similarity Index Measure (SSIM_).
     Args:
         preds: estimated image

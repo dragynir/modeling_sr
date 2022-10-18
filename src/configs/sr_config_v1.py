@@ -8,20 +8,20 @@ class TrainingConfig:
 
     # project
     project = 'super_resolution_tomo_diffusion'
-    experiment = 'experiment0' 
+    experiment = 'experiment0_tomo_x4' 
     checkpoints_path = '/home/d_korostelev/Projects/super_resolution/modeling_sr/checkpoints/'
-    debug = True # use simple dataset to test super resolution
-    criterion = torch.nn.MSELoss()
+    debug = False # use simple dataset to test super resolution
+    criterion = torch.nn.L1Loss() # MSE()
 
     # dataset
-    # data_path = r"C:\Users\dkoro\PythonProjects\SuperResolution\modeling\data\data.csv"
-    data_path = "/home/d_korostelev/Projects/super_resolution/modeling_sr/data/overfit/data.csv"
+    data_path = "/home/d_korostelev/Projects/super_resolution/data/v1_dataset_DeepRockSR.csv"
+    # data_path = "/home/d_korostelev/Projects/super_resolution/modeling_sr/data/overfit/data.csv"
 
     # hyperparameters
     in_channels = 2
     out_channels = 1
     image_size = 128  # the generated image resolution
-    lr_image_size = 64
+    lr_image_size = 32 # 64
     num_epochs = 1000
     train_batch_size = 16
     eval_batch_size = 1 # how many images to sample during evaluation

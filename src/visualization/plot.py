@@ -19,15 +19,18 @@ def make_grid(images):
 def tensor_to_image(image):
     image = (image / 2 + 0.5).clamp(0, 1)
     image = image.cpu().permute(1, 2, 0).numpy()
-    image = np.concatenate((image, image, image), axis=-1)
-    return image * 255
+    return image
 
-def make_sr_grid(lr_image: Tensor, hr_image: Tensor, sr_image: Image):
+def make_sr_grid(lr_image: Tensor, hr_image: Tensor, sr_image: Image, as_image=True):
     
     lr_image = tensor_to_image(lr_image)
     hr_image = tensor_to_image(hr_image)
     sr_image = np.array(sr_image)
+            
+    if as_image:
+        lr_image = np.concatenate([lr_image] * 3, axis=-1) * 255
+        hr_image = np.concatenate([hr_image] * 3, axis=-1) * 255
     
-    print(lr_image.min(), lr_image.max())
+    # print(lr_image.min(), lr_image.max())
     
     return np.concatenate([lr_image, sr_image, hr_image], axis=1)

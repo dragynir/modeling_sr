@@ -181,7 +181,6 @@ class DDPMPipeline(DiffusionPipeline):
             if image.shape[-1] == 1:
                 image = np.concatenate((image, image, image), axis=-1)
             image = self.numpy_to_pil(image)
-
         if not return_dict:
             return (image,)
 
