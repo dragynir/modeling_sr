@@ -33,8 +33,8 @@ def validate(config: dataclass, tag: str):
     images_paths = os.listdir(saved_images_path)
 
     metrics = (
-        ValidationMetric(SSIM, name="SSIM"),
-        ValidationMetric(PeakSignalNoiseRatio, name="PSNR"),
+        ValidationMetric(SSIM(), name="SSIM"),
+        ValidationMetric(PeakSignalNoiseRatio(), name="PSNR"),
     )
 
     print(f"Found {len(images_paths)} images for validation.")
