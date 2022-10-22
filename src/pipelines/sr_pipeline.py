@@ -231,23 +231,23 @@ class VisualizationCallback(dl.Callback):
         if self.epoch % self.every_epoch == 0:
             pipeline = DDPMPipeline(unet=runner.model, scheduler=runner.noise_scheduler)
 
-            ind = 0
-            image_condition = self.batch["lr_image"][ind]
-            high_resolution = self.batch["hr_image"][ind]
+            condition_images = self.batch["lr_image"]
+            hr_images = self.batch["hr_image"]
 
             sr_images = pipeline(
                 batch_size=runner.config.eval_batch_size,
                 generator=torch.manual_seed(runner.config.seed),
-                image_condition=image_condition,
+                condition_images=condition_images,
                 num_train_timesteps=runner.config.num_train_timesteps,
             )["images"]
 
-            sr_image = sr_images[0]
+            for ind, (hr_image, sr_image, lr_image) in enumerate(
+                    zip(hr_images, sr_images, condition_images)
+            ):
+                image_grid = make_sr_grid(lr_image, hr_image, sr_image)
 
-            image_grid = make_sr_grid(image_condition, high_resolution, sr_image)
-
-            runner.loggers["wandb"].log_image(
-                f"generation_{ind}", image_grid, runner, scope="batch"
-            )
+                runner.loggers["wandb"].log_image(
+                    f"generation_{ind}", image_grid, runner, scope="batch"
+                )
 
         self.epoch += 1

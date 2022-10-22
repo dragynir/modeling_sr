@@ -13,6 +13,7 @@ from catalyst import utils
 from models.unet2d import UNet2D
 import os
 import numpy as np
+from tqdm import tqdm
 
 
 def validate(model, config: dataclass, tag: str, debug=False):
@@ -31,37 +32,37 @@ def validate(model, config: dataclass, tag: str, debug=False):
     )
     os.makedirs(save_images_path, exist_ok=True)
 
+    print("Start validation...")
     # Переписать на предикты по батчам в рамках одной картинки
-    for batch_ind, batch in enumerate(val_loader):
-        for ind in range(config.eval_batch_size):
-            image_condition = batch["lr_image"][ind]
-            high_resolution = batch["hr_image"][ind]
+    for batch_ind, batch in tqdm(enumerate(val_loader)):
+        condition_images = batch["lr_image"]
+        hr_images = batch["hr_image"]
 
-            # print(image_condition.shape)
-            # print(high_resolution.shape)
+        # print(image_condition.shape)
+        # print(high_resolution.shape)
 
-            sr_images = pipeline(
-                batch_size=config.eval_batch_size,
-                generator=torch.manual_seed(config.seed),
-                image_condition=image_condition,
-                num_train_timesteps=config.num_train_timesteps,
-                output_type="np",
-                sample_size=512,
-            )["images"]
+        sr_images = pipeline(
+            batch_size=config.eval_batch_size,
+            generator=torch.manual_seed(config.seed),
+            condition_images=condition_images,
+            num_train_timesteps=config.num_train_timesteps,
+            output_type="np",
+            sample_size=config.test_image_size,
+        )["images"]
 
-            sr_image = sr_images[0]
-
+        for ind, (hr_image, sr_image, lr_image) in enumerate(
+            zip(hr_images, sr_images, condition_images)
+        ):
             # print(image_condition.shape)
             # print(high_resolution.shape)
             # print(sr_image.shape)
-
-            image_grid = make_sr_grid(image_condition, high_resolution, sr_image, as_image=False)
+            image_grid = make_sr_grid(lr_image, hr_image, sr_image, as_image=False)
             save_path = os.path.join(save_images_path, f"img_{batch_ind}_{ind}.npy")
             np.save(save_path, image_grid)
-
             # break
         # break
 
+    # example for noise metrics validation
     # runner = CustomRunner(
     #     noise_scheduler=noise_scheduler,
     #     config=config,
@@ -78,8 +79,6 @@ def validate(model, config: dataclass, tag: str, debug=False):
     #     verbose=True,
     # )
     # return metrics
-
-    # TODO use for fast inference generation; put output to input again in batch mode
     # CustomRunner.predict_batch
     # CustomRunner.predict_loader
 

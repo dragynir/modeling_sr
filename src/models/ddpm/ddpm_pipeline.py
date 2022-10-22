@@ -10,7 +10,6 @@ import PIL
 from typing import List, Optional, Union, Any
 import numpy as np
 import dataclasses as dc
-from tqdm import tqdm
 
 
 class BaseOutput(OrderedDict):
@@ -116,9 +115,9 @@ class DDPMPipeline(DiffusionPipeline):
     @torch.no_grad()
     def __call__(
         self,
-        batch_size: int = 1,
-        sample_size: int = None,
-        image_condition=None,
+        batch_size: int,
+        sample_size: int,
+        condition_images,
         generator: Optional[torch.Generator] = None,
         output_type: Optional[str] = "pil",
         return_dict: bool = True,
@@ -154,40 +153,51 @@ class DDPMPipeline(DiffusionPipeline):
                 device = "cuda" if torch.cuda.is_available() else "cpu"
             self.to(device)
 
-        # image condition
-        image_condition = image_condition.unsqueeze(0)
-
         # Sample gaussian noise to begin loop
-        sample_size = sample_size if sample_size else self.unet.sample_size
         in_channels_condition = self.unet.in_channels // 2
-        image = torch.randn(
+        noise_batch_image = torch.randn(
             (batch_size, in_channels_condition, sample_size, sample_size),
             generator=generator,
         )
 
-        image_condition = image_condition.to(self.device)
-        image = image.to(self.device)
+        condition_images = condition_images.to(self.device)
+        noise_batch_image = noise_batch_image.to(self.device)
 
         # set step values
         self.scheduler.set_timesteps(num_train_timesteps)
 
-        for t in tqdm(self.scheduler.timesteps):
+        for t in self.scheduler.timesteps:
             # 1. predict noise model_output
-            input_condition = torch.cat((image, image_condition), dim=1)
+            input_condition = torch.cat((noise_batch_image, condition_images), dim=1)
             # print(image_condition.shape, image.shape)
             model_output = self.unet(input_condition, t)["sample"]
             # print(model_output)
 
             # 2. compute previous image: x_t -> t_t-1
-            image = self.scheduler.step(model_output, t, image, generator=generator)["prev_sample"]
+            noise_batch_image = self.scheduler.step(
+                model_output,
+                t,
+                noise_batch_image,
+                generator=generator,
+            )["prev_sample"]
 
-        image = (image / 2 + 0.5).clamp(0, 1)
-        image = image.cpu().permute(0, 2, 3, 1).numpy()
+        noise_batch_image = (noise_batch_image / 2 + 0.5).clamp(0, 1)
+        noise_batch_image = noise_batch_image.cpu().permute(0, 2, 3, 1).numpy()
+
         if output_type == "pil":
-            if image.shape[-1] == 1:
-                image = np.concatenate((image, image, image), axis=-1)
-            image = self.numpy_to_pil(image)
-        if not return_dict:
-            return (image,)
+            # fro gray images
+            if noise_batch_image.shape[-1] == 1:
+                noise_batch_image = np.concatenate(
+                    (
+                        noise_batch_image,
+                        noise_batch_image,
+                        noise_batch_image,
+                    ),
+                    axis=-1,
+                )
+            noise_batch_image = self.numpy_to_pil(noise_batch_image)
 
-        return ImagePipelineOutput(images=image)
+        if not return_dict:
+            return noise_batch_image
+
+        return ImagePipelineOutput(images=noise_batch_image)
