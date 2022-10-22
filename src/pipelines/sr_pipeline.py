@@ -16,7 +16,7 @@ from visualization.plot import make_sr_grid
 
 from utils.debug import get_debug_dataloaders
 import os
-from metrics.image_metrics import SSIM
+
 
 # CUDA_VISIBLE_DEVICES="0" python run.py
 # CUDA_VISIBLE_DEVICES="0" nohup python run.py &
@@ -61,7 +61,7 @@ class SRPipeline(object):
             num_workers=config.num_workers,
             shuffle=False,
         )
-    
+
     @staticmethod
     def create_test_loader(config):
         df = pd.read_csv(config.data_path)
@@ -82,14 +82,14 @@ class SRPipeline(object):
         )
 
     def run(self, config):
-        
+
         set_global_seed(config.seed)
 
         model = UNet2D.create_from_config(config)
         optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
-        
+
         if config.debug:
-            print('Use debug dataloaders...')
+            print("Use debug dataloaders...")
             train_loader, valid_loader, vis_loader = get_debug_dataloaders(config)
         else:
             train_loader = self.create_train_loader(config)
@@ -116,30 +116,37 @@ class SRPipeline(object):
             loss_key="loss",
         )
 
-        callbacks = OrderedDict({
-            "batch_transform": dl.BatchTransformCallback(
-                input_key=["hr_image", "lr_image"],
-                output_key=["conditioned_noise", "timesteps", "noise_target"],
-                transform=runner.generate_noise,
-                scope="on_batch_start",
-            ),
-            "criterion": dl.CriterionCallback(
-                input_key="noise_pred", target_key="noise_target", metric_key="loss"
-            ),
-            "model_checkpoint": dl.CheckpointCallback(
-                logdir=os.path.join(config.checkpoints_path, config.experiment),
-                loader_key="valid", metric_key="loss",
-                minimize=True, topk=1,
-                resume_model=None,  # set it to start from pretrained model
-            ),
-            "runner_checkpoint": dl.CheckpointCallback(
-                logdir=os.path.join(config.checkpoints_path, config.experiment),
-                loader_key="valid", metric_key="loss",
-                minimize=True, topk=1, mode="runner",
-                resume_runner=None  # set it if experiment failed to resume training
-            ),
-            "visualization": VisualizationCallback(vis_loader),
-        })
+        callbacks = OrderedDict(
+            {
+                "batch_transform": dl.BatchTransformCallback(
+                    input_key=["hr_image", "lr_image"],
+                    output_key=["conditioned_noise", "timesteps", "noise_target"],
+                    transform=runner.generate_noise,
+                    scope="on_batch_start",
+                ),
+                "criterion": dl.CriterionCallback(
+                    input_key="noise_pred", target_key="noise_target", metric_key="loss"
+                ),
+                "model_checkpoint": dl.CheckpointCallback(
+                    logdir=os.path.join(config.checkpoints_path, config.experiment),
+                    loader_key="valid",
+                    metric_key="loss",
+                    minimize=True,
+                    topk=1,
+                    resume_model=None,  # set it to start from pretrained model
+                ),
+                "runner_checkpoint": dl.CheckpointCallback(
+                    logdir=os.path.join(config.checkpoints_path, config.experiment),
+                    loader_key="valid",
+                    metric_key="loss",
+                    minimize=True,
+                    topk=1,
+                    mode="runner",
+                    resume_runner=None,  # set it if experiment failed to resume training
+                ),
+                "visualization": VisualizationCallback(vis_loader),
+            }
+        )
 
         runner.train(
             model=model,
@@ -162,7 +169,7 @@ class CustomRunner(dl.SupervisedRunner):
         self.valid_metrics = {"valid_mse": torch.nn.MSELoss()}
 
     def forward(self, batch: Mapping[str, Any], **kwargs) -> Mapping[str, Any]:
-        noise_pred = self.model(batch["conditioned_noise"], batch["timesteps"])['sample']
+        noise_pred = self.model(batch["conditioned_noise"], batch["timesteps"])["sample"]
         return {"noise_pred": noise_pred}
 
     def handle_batch(self, batch):
@@ -172,8 +179,6 @@ class CustomRunner(dl.SupervisedRunner):
             self.handle_valid_batch(batch)
 
     def handle_valid_batch(self, batch):
-        # hr_image, lr_image, conditioned_noise, timesteps, noise_target
-        
         noise_pred = self.forward(batch)
         self.batch.update(noise_pred)
 
@@ -222,10 +227,10 @@ class VisualizationCallback(dl.Callback):
         self.epoch = 0
 
     def on_epoch_end(self, runner: CustomRunner):
-        
+
         if self.epoch % self.every_epoch == 0:
             pipeline = DDPMPipeline(unet=runner.model, scheduler=runner.noise_scheduler)
-            
+
             ind = 0
             image_condition = self.batch["lr_image"][ind]
             high_resolution = self.batch["hr_image"][ind]
@@ -241,6 +246,8 @@ class VisualizationCallback(dl.Callback):
 
             image_grid = make_sr_grid(image_condition, high_resolution, sr_image)
 
-            runner.loggers['wandb'].log_image(f'generation_{ind}', image_grid, runner, scope='batch')
+            runner.loggers["wandb"].log_image(
+                f"generation_{ind}", image_grid, runner, scope="batch"
+            )
 
-        self.epoch+=1
+        self.epoch += 1

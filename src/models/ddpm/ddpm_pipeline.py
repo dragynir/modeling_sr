@@ -12,6 +12,7 @@ import numpy as np
 import dataclasses as dc
 from tqdm import tqdm
 
+
 class BaseOutput(OrderedDict):
     """
     Base class for all model outputs as dataclass. Has a `__getitem__` that allows indexing by integer or slice (like a
@@ -50,7 +51,10 @@ class BaseOutput(OrderedDict):
     def __getitem__(self, k):
         if isinstance(k, str):
             inner_dict = {k: v for (k, v) in self.items()}
-            if self.__class__.__name__ in ["StableDiffusionPipelineOutput", "ImagePipelineOutput"] and k == "sample":
+            if (
+                self.__class__.__name__ in ["StableDiffusionPipelineOutput", "ImagePipelineOutput"]
+                and k == "sample"
+            ):
                 warnings.warn(
                     "The keyword 'samples' is deprecated and will be removed in version 0.4.0. Please use `.images` or"
                     " `'images'` instead.",
@@ -171,11 +175,11 @@ class DDPMPipeline(DiffusionPipeline):
             # 1. predict noise model_output
             input_condition = torch.cat((image, image_condition), dim=1)
             # print(image_condition.shape, image.shape)
-            model_output = self.unet(input_condition, t)['sample']
+            model_output = self.unet(input_condition, t)["sample"]
             # print(model_output)
 
             # 2. compute previous image: x_t -> t_t-1
-            image = self.scheduler.step(model_output, t, image, generator=generator)['prev_sample']
+            image = self.scheduler.step(model_output, t, image, generator=generator)["prev_sample"]
 
         image = (image / 2 + 0.5).clamp(0, 1)
         image = image.cpu().permute(0, 2, 3, 1).numpy()

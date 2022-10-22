@@ -1,9 +1,11 @@
+from dataclasses import dataclass
+
 from datasets import load_dataset
 from torchvision import transforms
 import torch
 from functools import partial
 
-# another datasets for debug
+# Another datasets for debug
 # Feel free to try other datasets from https://hf.co/huggan/ too! 
 # Here's is a dataset of flower photos:
 # config.dataset_name = "huggan/flowers-102-categories"
@@ -20,9 +22,10 @@ def transform(examples, preprocess_high_res, preprocess_low_res):
     return {"hr_image": images, "lr_image": low_res_images}
 
 
-def get_debug_dataloaders(config):
-    
-    train_samples = 1000
+def get_debug_dataloaders(config: dataclass):
+    """"
+        Return dataloaders with simple datatasets to test pipeline.
+    """
     val_samples = 10
     
     preprocess_high_res = transforms.Compose(
@@ -68,5 +71,3 @@ def get_debug_dataloaders(config):
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=config.eval_batch_size, shuffle=False)
     
     return train_dataloader, val_dataloader, val_dataloader
-
-

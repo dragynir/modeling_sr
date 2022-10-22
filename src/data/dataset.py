@@ -62,23 +62,21 @@ class SuperResolutionDataset(Dataset):
         }
 
         return result
-    
-    
+
+
 class SuperResolutionTestDataset(SuperResolutionDataset):
-    
-    def __init__(self, *args, **kwargs):
+    def __init__(self, test_image_size: int, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.test_size = 512
+        self.test_size = test_image_size
         self.pad = A.PadIfNeeded(self.test_size, self.test_size, always_apply=True)
-    
+
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         # TODO добавить чтение tiff изображений
         data_point = self.df.iloc[idx]
 
         hr_image = cv2.imread(data_point.path)
         hr_image = self.pad(image=hr_image)["image"]
-        
-        
+
         lr_size = self.test_size // (self.hr_size // self.lr_size)
 
         # downsample image to remove details
@@ -94,7 +92,7 @@ class SuperResolutionTestDataset(SuperResolutionDataset):
             "lr_image": lr_image[0, ...].unsqueeze(0),
         }
         return result
-    
+
 
 def create_dataset(
     df: pd.DataFrame,
@@ -103,11 +101,24 @@ def create_dataset(
     mode: str = "train",
 ) -> SuperResolutionDataset:
     """Create dataset from data.csv DataFrame"""
-    
+
     if mode == "test":
-        return SuperResolutionTestDataset(df, config.image_size, config.lr_image_size, augmentations, mode)
-    
-    return SuperResolutionDataset(df, config.image_size, config.lr_image_size, augmentations, mode)
+        return SuperResolutionTestDataset(
+            config.test_image_size,
+            df,
+            config.image_size,
+            config.lr_image_size,
+            augmentations,
+            mode,
+        )
+
+    return SuperResolutionDataset(
+        df,
+        config.image_size,
+        config.lr_image_size,
+        augmentations,
+        mode,
+    )
 
 
 def create_dataloader(
@@ -116,7 +127,7 @@ def create_dataloader(
     num_workers,
     shuffle,
     drop_last=True,
-):
+) -> DataLoader:
     return DataLoader(
         dataset,
         batch_size=batch_size,

@@ -171,7 +171,9 @@ class PeakSignalNoiseRatio(Metric):
         super().__init__(compute_on_step=compute_on_step, **kwargs)
 
         if dim is None and reduction != "elementwise_mean":
-            rank_zero_warn(f"The `reduction={reduction}` will not have any effect when `dim` is None.")
+            rank_zero_warn(
+                f"The `reduction={reduction}` will not have any effect when `dim` is None."
+            )
 
         if dim is None:
             self.add_state("sum_squared_error", default=tensor(0.0), dist_reduce_fx="sum")
@@ -227,4 +229,6 @@ class PeakSignalNoiseRatio(Metric):
         else:
             sum_squared_error = torch.cat([values.flatten() for values in self.sum_squared_error])
             total = torch.cat([values.flatten() for values in self.total])
-        return _psnr_compute(sum_squared_error, total, data_range, base=self.base, reduction=self.reduction)
+        return _psnr_compute(
+            sum_squared_error, total, data_range, base=self.base, reduction=self.reduction
+        )
