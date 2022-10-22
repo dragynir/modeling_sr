@@ -3,6 +3,8 @@ from typing import Dict, Optional
 
 import cv2
 import torch
+import numpy as np
+from tifffile import tifffile
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
 from albumentations import Compose
@@ -41,28 +43,42 @@ class SuperResolutionDataset(Dataset):
     def __len__(self) -> int:
         return len(self.df)
 
+    @staticmethod
+    def __read_image_source(image_path: str) -> np.ndarray:
+
+        if ".tiff" in image_path:
+            image = tifffile.imread(image_path)
+        else:
+            # all channels are equal
+            image = cv2.imread(image_path)[0, :, :]
+        return image
+
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
-        # TODO добавить чтение tiff изображений
         data_point = self.df.iloc[idx]
 
-        hr_image = cv2.imread(data_point.path)
+        hr_image = self.__read_image_source(data_point.path)
+        lr_image = None
 
-        hr_image = self.crop_hr(image=hr_image)["image"]
+        if "lr_path" in data_point.columns:
+            # TODO есть пара в низком разрешении
+            pass
+        else:
+            hr_image = self.crop_hr(image=hr_image)["image"]
 
-        if self.mode == "train":
-            hr_image = self.augmentations(image=hr_image)["image"]
+            if self.mode == "train":
+                hr_image = self.augmentations(image=hr_image)["image"]
 
-        # downsample image to remove details
-        lr_image = cv2.resize(hr_image, (self.lr_size, self.lr_size))
-        # resize image back to fit hr_image size
-        lr_image = cv2.resize(lr_image, (self.hr_size, self.hr_size))
+            # downsample image to remove details
+            lr_image = cv2.resize(hr_image, (self.lr_size, self.lr_size))
+            # resize image back to fit hr_image size
+            lr_image = cv2.resize(lr_image, (self.hr_size, self.hr_size))
 
         lr_image = self.post_process(image=lr_image)["image"]
         hr_image = self.post_process(image=hr_image)["image"]
 
         result = {
-            "hr_image": hr_image[0, ...].unsqueeze(0),
-            "lr_image": lr_image[0, ...].unsqueeze(0),
+            "hr_image": hr_image.unsqueeze(0),
+            "lr_image": lr_image.unsqueeze(0),
         }
 
         return result
@@ -72,28 +88,36 @@ class SuperResolutionTestDataset(SuperResolutionDataset):
     def __init__(self, test_image_size: int, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.test_size = test_image_size
-        self.pad = A.PadIfNeeded(self.test_size, self.test_size, always_apply=True)
+        self.pad = A.PadIfNeeded(
+            self.test_size,
+            self.test_size,
+            always_apply=True,
+        )
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
-        # TODO добавить чтение tiff изображений
         data_point = self.df.iloc[idx]
 
-        hr_image = cv2.imread(data_point.path)
-        hr_image = self.pad(image=hr_image)["image"]
+        hr_image = self.__read_image_source(data_point.path)
+        lr_image = None
 
-        lr_size = self.test_size // (self.hr_size // self.lr_size)
+        if "lr_path" in data_point.columns:
+            # TODO есть пара в низком разрешении
+            pass
+        else:
+            hr_image = self.pad(image=hr_image)["image"]
+            lr_size = self.test_size // (self.hr_size // self.lr_size)
 
-        # downsample image to remove details
-        lr_image = cv2.resize(hr_image, (lr_size, lr_size))
-        # resize image back to fit hr_image size
-        lr_image = cv2.resize(lr_image, (self.test_size, self.test_size))
+            # downsample image to remove details
+            lr_image = cv2.resize(hr_image, (lr_size, lr_size))
+            # resize image back to fit hr_image size
+            lr_image = cv2.resize(lr_image, (self.test_size, self.test_size))
 
         lr_image = self.post_process(image=lr_image)["image"]
         hr_image = self.post_process(image=hr_image)["image"]
 
         result = {
-            "hr_image": hr_image[0, ...].unsqueeze(0),
-            "lr_image": lr_image[0, ...].unsqueeze(0),
+            "hr_image": hr_image.unsqueeze(0),
+            "lr_image": lr_image.unsqueeze(0),
         }
         return result
 
