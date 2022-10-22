@@ -62,7 +62,39 @@ class SuperResolutionDataset(Dataset):
         }
 
         return result
+    
+    
+class SuperResolutionTestDataset(SuperResolutionDataset):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.test_size = 512
+        self.pad = A.PadIfNeeded(self.test_size, self.test_size, always_apply=True)
+    
+    def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
+        # TODO добавить чтение tiff изображений
+        data_point = self.df.iloc[idx]
 
+        hr_image = cv2.imread(data_point.path)
+        hr_image = self.pad(image=hr_image)["image"]
+        
+        
+        lr_size = self.test_size // (self.hr_size // self.lr_size)
+
+        # downsample image to remove details
+        lr_image = cv2.resize(hr_image, (lr_size, lr_size))
+        # resize image back to fit hr_image size
+        lr_image = cv2.resize(lr_image, (self.test_size, self.test_size))
+
+        lr_image = self.post_process(image=lr_image)["image"]
+        hr_image = self.post_process(image=hr_image)["image"]
+
+        result = {
+            "hr_image": hr_image[0, ...].unsqueeze(0),
+            "lr_image": lr_image[0, ...].unsqueeze(0),
+        }
+        return result
+    
 
 def create_dataset(
     df: pd.DataFrame,
@@ -71,6 +103,10 @@ def create_dataset(
     mode: str = "train",
 ) -> SuperResolutionDataset:
     """Create dataset from data.csv DataFrame"""
+    
+    if mode == "test":
+        return SuperResolutionTestDataset(df, config.image_size, config.lr_image_size, augmentations, mode)
+    
     return SuperResolutionDataset(df, config.image_size, config.lr_image_size, augmentations, mode)
 
 

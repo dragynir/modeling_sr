@@ -113,6 +113,7 @@ class DDPMPipeline(DiffusionPipeline):
     def __call__(
         self,
         batch_size: int = 1,
+        sample_size: int = None,
         image_condition=None,
         generator: Optional[torch.Generator] = None,
         output_type: Optional[str] = "pil",
@@ -153,9 +154,10 @@ class DDPMPipeline(DiffusionPipeline):
         image_condition = image_condition.unsqueeze(0)
 
         # Sample gaussian noise to begin loop
+        sample_size = sample_size if sample_size else self.unet.sample_size
         in_channels_condition = self.unet.in_channels // 2
         image = torch.randn(
-            (batch_size, in_channels_condition, self.unet.sample_size, self.unet.sample_size),
+            (batch_size, in_channels_condition, sample_size, sample_size),
             generator=generator,
         )
 

@@ -22,7 +22,7 @@ def validate(model, config, tag, debug=False):
     if debug: 
         _, val_loader, _ = get_debug_dataloaders(config)
     else:
-        val_loader = SRPipeline.create_val_loader(config)
+        val_loader = SRPipeline.create_test_loader(config)
 
     noise_scheduler = create_noise_scheduler(config)
     
@@ -31,10 +31,14 @@ def validate(model, config, tag, debug=False):
     save_images_path = os.path.join(config.checkpoints_path, config.experiment, f'validate_results_{tag}')
     os.makedirs(save_images_path, exist_ok=True)
     
+    # Переписать на предикты по батчам в рамках одной картинки
     for batch_ind, batch in enumerate(val_loader):
         for ind in range(config.eval_batch_size):
             image_condition = batch["lr_image"][ind]
             high_resolution = batch["hr_image"][ind]
+            
+            # print(image_condition.shape)
+            # print(high_resolution.shape)
 
             sr_images = pipeline(
                 batch_size=config.eval_batch_size,
@@ -42,6 +46,7 @@ def validate(model, config, tag, debug=False):
                 image_condition=image_condition,
                 num_train_timesteps=config.num_train_timesteps,
                 output_type='np',
+                sample_size=512,
             )["images"]
 
             sr_image = sr_images[0]
@@ -79,13 +84,13 @@ def validate(model, config, tag, debug=False):
     # CustomRunner.predict_loader
 
     
-# CUDA_VISIBLE_DEVICES="0" nohup python validate.py &
-# CUDA_VISIBLE_DEVICES="0" python validate.py
+# CUDA_VISIBLE_DEVICES="1" nohup python validate.py &
+# CUDA_VISIBLE_DEVICES="1" python validate.py
 
 if __name__ == '__main__':
     set_global_seed(config.seed)
 
-    model_path = "/home/d_korostelev/Projects/super_resolution/modeling_sr/checkpoints/experiment0_tomo/runner.best.pth"
+    model_path = "/home/d_korostelev/Projects/super_resolution/modeling_sr/checkpoints/experiment0_tomo_x4/runner.best.pth"
     # add jit model
     
     model = UNet2D.create_from_config(config)
@@ -97,4 +102,4 @@ if __name__ == '__main__':
 
     # model = torch.load(model_path, map_location=torch.device('cuda:0'))
     # print(model.keys())
-    validate(model, config, tag='np', debug=False)
+    validate(model, config, tag='np_all', debug=False)

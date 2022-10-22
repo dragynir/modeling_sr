@@ -61,6 +61,25 @@ class SRPipeline(object):
             num_workers=config.num_workers,
             shuffle=False,
         )
+    
+    @staticmethod
+    def create_test_loader(config):
+        df = pd.read_csv(config.data_path)
+        df = df[df.split == "test"]
+
+        dataset = create_dataset(
+            df=df,
+            config=config,
+            augmentations=None,
+            mode="test",
+        )
+
+        return create_dataloader(
+            dataset=dataset,
+            batch_size=config.eval_batch_size,
+            num_workers=config.num_workers,
+            shuffle=False,
+        )
 
     def run(self, config):
         
