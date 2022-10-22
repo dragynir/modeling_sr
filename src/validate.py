@@ -6,8 +6,12 @@ from plistlib import Dict
 import numpy as np
 import torch
 
-from metrics.image_metrics import SSIM, PeakSignalNoiseRatio
 from configs.benchmark_config_ import config
+from torchmetrics import StructuralSimilarityIndexMeasure as SSIM
+from torchmetrics import MultiScaleStructuralSimilarityIndexMeasure as MSSIM
+from torchmetrics import PeakSignalNoiseRatio as PSNR
+# LearnedPerceptualImagePatchSimilarity
+# UniversalImageQualityIndex
 
 
 @dataclass
@@ -34,7 +38,8 @@ def validate(config: dataclass, tag: str):
 
     metrics = (
         ValidationMetric(SSIM(), name="SSIM"),
-        ValidationMetric(PeakSignalNoiseRatio(), name="PSNR"),
+        ValidationMetric(MSSIM(), name="MSSIM"),
+        ValidationMetric(PSNR(), name="PSNR"),
     )
 
     print(f"Found {len(images_paths)} images for validation.")

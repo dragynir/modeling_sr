@@ -21,7 +21,11 @@ class SuperResolutionDataset(Dataset):
     ) -> None:
         self.df = df
         self.augmentations = augmentations
-        self.crop_hr = A.RandomCrop(hr_image_size, hr_image_size, always_apply=True)
+        self.crop_hr = A.RandomCrop(
+            hr_image_size,
+            hr_image_size,
+            always_apply=True,
+        )
         self.hr_size = hr_image_size
         self.lr_size = lr_image_size
 
