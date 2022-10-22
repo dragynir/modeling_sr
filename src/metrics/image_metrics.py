@@ -12,7 +12,6 @@ from torchmetrics.functional.image.ssim import _ssim_compute, _ssim_update
 from torchmetrics.metric import Metric
 from torchmetrics.utilities import rank_zero_warn
 from torchmetrics.utilities.data import dim_zero_cat
-from catalyst import dl
 
 
 class SSIM(Metric):
