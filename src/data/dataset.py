@@ -33,6 +33,7 @@ class SuperResolutionDataset(Dataset):
 
         self.mode = mode
 
+        # benchmark dataset post process
         self.post_process = Compose(
             [
                 A.Normalize([0.5], [0.5]),  # [-1, 1] normalization
@@ -59,9 +60,7 @@ class SuperResolutionDataset(Dataset):
         hr_image = self.__read_image_source(data_point.path)
         lr_image = None
 
-        print('Before preprocess:', hr_image.min(), hr_image.max())
-
-        if "lr_path" in data_point.columns:
+        if "lr_path" in self.df.columns:
             # TODO есть пара в низком разрешении
             pass
         else:
@@ -77,8 +76,6 @@ class SuperResolutionDataset(Dataset):
 
         lr_image = self.post_process(image=lr_image)["image"]
         hr_image = self.post_process(image=hr_image)["image"]
-
-        print('Final:', lr_image.min(), lr_image.max())
 
         result = {
             "hr_image": hr_image.unsqueeze(0),
@@ -104,7 +101,7 @@ class SuperResolutionTestDataset(SuperResolutionDataset):
         hr_image = self.__read_image_source(data_point.path)
         lr_image = None
 
-        if "lr_path" in data_point.columns:
+        if "lr_path" in self.df.columns:
             # TODO есть пара в низком разрешении
             pass
         else:
