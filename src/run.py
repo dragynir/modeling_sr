@@ -1,5 +1,5 @@
 from pipelines.sr_pipeline import SRPipeline
-from configs.benchmark_config_ import config
+from configs import config
 
 # todo add validation and inference pipelines
 # TODO надо сделать общий интерфейс для train, чтобы был только один evaluate

@@ -6,12 +6,13 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from configs.benchmark_config_ import config
 from torchmetrics import StructuralSimilarityIndexMeasure as SSIM
 from torchmetrics import MultiScaleStructuralSimilarityIndexMeasure as MSSIM
 from torchmetrics import PeakSignalNoiseRatio as PSNR
 # LearnedPerceptualImagePatchSimilarity
 # UniversalImageQualityIndex
+
+from configs import config
 
 
 @dataclass

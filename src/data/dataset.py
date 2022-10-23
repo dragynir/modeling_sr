@@ -59,6 +59,8 @@ class SuperResolutionDataset(Dataset):
         hr_image = self.__read_image_source(data_point.path)
         lr_image = None
 
+        print('Before preprocess:', hr_image.min(), hr_image.max())
+
         if "lr_path" in data_point.columns:
             # TODO есть пара в низком разрешении
             pass
@@ -75,6 +77,8 @@ class SuperResolutionDataset(Dataset):
 
         lr_image = self.post_process(image=lr_image)["image"]
         hr_image = self.post_process(image=hr_image)["image"]
+
+        print('Final:', lr_image.min(), lr_image.max())
 
         result = {
             "hr_image": hr_image.unsqueeze(0),

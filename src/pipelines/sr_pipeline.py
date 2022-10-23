@@ -11,7 +11,7 @@ from models.ddpm.ddpm_pipeline import DDPMPipeline
 from models.ddpm.sheduler import create_noise_scheduler
 from models.unet2d import UNet2D
 from data.dataset import create_dataset, create_dataloader
-from data.augmentations import create_default_augmentations
+from data.augmentations import create_augmentations
 from visualization.plot import make_sr_grid
 
 from utils.debug import get_debug_dataloaders
@@ -31,7 +31,7 @@ class SRPipeline(object):
         dataset = create_dataset(
             df=df,
             config=config,
-            augmentations=create_default_augmentations(),
+            augmentations=create_augmentations(),
             mode="train",
         )
 

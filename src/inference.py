@@ -14,7 +14,7 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-from configs.benchmark_config_ import config
+from configs import config
 
 
 def validate(model, config: dataclass, tag: str, debug=False):
