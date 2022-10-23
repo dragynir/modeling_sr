@@ -51,7 +51,7 @@ class SuperResolutionDataset(Dataset):
             image = tifffile.imread(image_path)
         else:
             # all channels are equal
-            image = cv2.imread(image_path)[0, :, :]
+            image = cv2.imread(image_path)[:, :, 0]
         return image
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
