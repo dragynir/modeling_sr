@@ -9,8 +9,7 @@ class TrainingConfig:
     # project
     project = 'super_resolution_tomo_diffusion'
     experiment = 'experiment0_tomo_x4' 
-    # checkpoints_path = '/home/d_korostelev/Projects/super_resolution/modeling_sr/checkpoints/'
-    checkpoints_path = r"C:\Users\dkoro\PythonProjects\SuperResolution\modeling\checkpoints"
+    checkpoints_path = '/home/d_korostelev/Projects/super_resolution/modeling_sr/checkpoints/'
     debug = False  # use overfit dataset
     criterion = torch.nn.L1Loss()
 
