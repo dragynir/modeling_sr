@@ -18,10 +18,6 @@ from utils.debug import get_debug_dataloaders
 import os
 
 
-# CUDA_VISIBLE_DEVICES="0" python run.py
-# CUDA_VISIBLE_DEVICES="0" nohup python run.py &
-
-
 class SRPipeline(object):
     @staticmethod
     def create_train_loader(config):

@@ -3,6 +3,12 @@
 
 Colab: https://colab.research.google.com/drive/1TgiU4qWldgaBZd6a2iN-noYGEpdqAWQj#scrollTo=JsK5WWwvv8gM
 
+## Запуск на сервере
+
+export PATH=/opt/slurm/bin:$PATH
+srun -p gpuserv --pty bash
+
+scancel job_id
 
 ###  Что хотим получить от Super Resolution (гипотеза):
 1. Не надо сканировать образец в высоком разрешении для получения пористости образца.
