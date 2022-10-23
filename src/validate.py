@@ -1,10 +1,10 @@
-from collections import Callable
 from dataclasses import dataclass, field
 import os
-from plistlib import Dict
+from typing import Callable, Dict
 
 import numpy as np
 import torch
+from tqdm import tqdm
 
 from configs.benchmark_config_ import config
 from torchmetrics import StructuralSimilarityIndexMeasure as SSIM
@@ -23,7 +23,7 @@ class ValidationMetric:
 
 
 def compute_metric(images_results: Dict[str, float]) -> float:
-    return np.mean(np.array(images_results.values()))
+    return np.mean(np.array(list(images_results.values())))
 
 
 def validate(config: dataclass, tag: str):
@@ -45,14 +45,16 @@ def validate(config: dataclass, tag: str):
     print(f"Found {len(images_paths)} images for validation.")
 
     # TODO rewrite to faster implementation: batch
-    for img_name in images_paths:
+    for img_name in tqdm(images_paths):
         image = np.load(os.path.join(saved_images_path, img_name), allow_pickle=False)
         # lr_image = image[:, :img_size, :]
-        hr_image = image[:, img_size * 2:, :]
-        sr_image = image[:, img_size: img_size * 2, :]
+        hr_image = image[:, img_size * 2:, :].squeeze()
+        sr_image = image[:, img_size: img_size * 2, :].squeeze()
 
         for metric in metrics:
-            value = metric.metric_f(torch.tensor(sr_image), torch.tensor(hr_image)).item()
+            sr_tensor = torch.tensor(sr_image[None, None, ...])
+            hr_tensor = torch.tensor(hr_image[None, None, ...])
+            value = metric.metric_f(sr_tensor, hr_tensor).item()
             metric.images_results.update({img_name: value})
 
     for metric in metrics:
