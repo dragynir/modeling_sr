@@ -116,8 +116,8 @@ class DDPMPipeline(DiffusionPipeline):
     def __call__(
         self,
         batch_size: int,
-        sample_size: int,
         condition_images,
+        sample_size: int = None,
         generator: Optional[torch.Generator] = None,
         output_type: Optional[str] = "pil",
         return_dict: bool = True,
@@ -153,6 +153,7 @@ class DDPMPipeline(DiffusionPipeline):
                 device = "cuda" if torch.cuda.is_available() else "cpu"
             self.to(device)
 
+        sample_size = sample_size if sample_size is not None else self.unet.sample_size
         # Sample gaussian noise to begin loop
         in_channels_condition = self.unet.in_channels // 2
         noise_batch_image = torch.randn(
