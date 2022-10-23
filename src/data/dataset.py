@@ -76,7 +76,7 @@ class SuperResolutionDataset(Dataset):
 
         lr_image = self.post_process(image=lr_image)["image"]
         hr_image = self.post_process(image=hr_image)["image"]
-
+        print(hr_image.shape, lr_image.shape)
         result = {
             "hr_image": hr_image.unsqueeze(0),
             "lr_image": lr_image.unsqueeze(0),
