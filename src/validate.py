@@ -46,7 +46,7 @@ def validate(tag: str, images_path: str, img_size: int, rgb: bool):
     images_paths = os.listdir(saved_images_path)
 
     metrics = (
-        # ValidationMetric(SSIM(), name="SSIM"),
+        # ValidationMetric(SSIM(), name="SSIM"), # не дружат с 500x500
         # ValidationMetric(MSSIM(), name="MSSIM"),
         ValidationMetric(PSNR(), name="PSNR"),
     )
@@ -63,8 +63,6 @@ def validate(tag: str, images_path: str, img_size: int, rgb: bool):
         if rgb:
             hr_image = hr_image[:, :, 0]
             sr_image = sr_image[:, :, 0]
-
-        print(hr_image.shape, sr_image.shape)
 
         for metric in metrics:
             sr_tensor = torch.tensor(sr_image[None, None, ...])
