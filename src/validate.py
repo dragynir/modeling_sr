@@ -64,6 +64,8 @@ def validate(tag: str, images_path: str, img_size: int, rgb: bool):
             hr_image = hr_image[:, :, 0]
             sr_image = sr_image[:, :, 0]
 
+        print(hr_image.shape, sr_image.shape)
+
         for metric in metrics:
             sr_tensor = torch.tensor(sr_image[None, None, ...])
             hr_tensor = torch.tensor(hr_image[None, None, ...])
