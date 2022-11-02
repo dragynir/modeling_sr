@@ -28,9 +28,9 @@ def compute_metric(images_results: Dict[str, float]) -> float:
     return np.mean(np.array(list(images_results.values())))
 
 
-@click.option('--tag', default='np_all', help='Tag for experiment')
-@click.option('--images_path', default='', help='Folder with np images')
-@click.option('--img_size', default=512, help='Image size')
+@click.option('--tag', default='np_all', help='Tag for experiment', required=False)
+@click.option('--images_path', default='', help='Folder with np images', required=False)
+@click.option('--img_size', default=512, help='Image size', required=False)
 def validate(tag: str, images_path: str, img_size: int):
 
     saved_images_path = os.path.join(
