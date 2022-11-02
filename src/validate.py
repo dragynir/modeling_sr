@@ -13,6 +13,7 @@ from torchmetrics import PeakSignalNoiseRatio as PSNR
 # UniversalImageQualityIndex
 
 from configs import config
+import click
 
 
 @dataclass
@@ -27,13 +28,18 @@ def compute_metric(images_results: Dict[str, float]) -> float:
     return np.mean(np.array(list(images_results.values())))
 
 
-def validate(config: dataclass, tag: str):
+@click.option('--tag', default='np_all', help='Tag for experiment')
+@click.option('--images_path', default='', help='Folder with np images')
+@click.option('--img_size', default=512, help='Image size')
+def validate(tag: str, images_path: str, img_size: int):
 
     saved_images_path = os.path.join(
         config.checkpoints_path, config.experiment, f"validate_results_{tag}"
     )
 
-    img_size = config.test_image_size
+    saved_images_path = images_path if images_path else saved_images_path
+
+    # img_size = config.test_image_size
 
     images_paths = os.listdir(saved_images_path)
 
@@ -64,4 +70,4 @@ def validate(config: dataclass, tag: str):
 
 
 if __name__ == "__main__":
-    validate(config, "np_all")
+    validate()
