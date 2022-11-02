@@ -46,8 +46,8 @@ def validate(tag: str, images_path: str, img_size: int, rgb: bool):
     images_paths = os.listdir(saved_images_path)
 
     metrics = (
-        ValidationMetric(SSIM(), name="SSIM"),
-        ValidationMetric(MSSIM(), name="MSSIM"),
+        # ValidationMetric(SSIM(), name="SSIM"),
+        # ValidationMetric(MSSIM(), name="MSSIM"),
         ValidationMetric(PSNR(), name="PSNR"),
     )
 
