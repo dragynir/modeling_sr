@@ -32,7 +32,8 @@ def compute_metric(images_results: Dict[str, float]) -> float:
 @click.option('--tag', default='np_all', help='Tag for experiment', required=False)
 @click.option('--images_path', default='', help='Folder with np images', required=False)
 @click.option('--img_size', default=512, help='Image size', required=False)
-def validate(tag: str, images_path: str, img_size: int):
+@click.option('--rgb', default=False, help='Is rgb image', required=False)
+def validate(tag: str, images_path: str, img_size: int, rgb: bool):
 
     saved_images_path = os.path.join(
         config.checkpoints_path, config.experiment, f"validate_results_{tag}"
@@ -58,6 +59,10 @@ def validate(tag: str, images_path: str, img_size: int):
         # lr_image = image[:, :img_size, :]
         hr_image = image[:, img_size * 2:, :].squeeze()
         sr_image = image[:, img_size: img_size * 2, :].squeeze()
+
+        if rgb:
+            hr_image = hr_image[:, :, 0]
+            sr_image = sr_image[:, :, 0]
 
         for metric in metrics:
             sr_tensor = torch.tensor(sr_image[None, None, ...])
