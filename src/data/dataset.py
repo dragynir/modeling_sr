@@ -63,7 +63,7 @@ class SuperResolutionDataset(Dataset):
         if "lr_path" in self.df.columns:
             lr_image = self.__read_image_source(data_point.lr_path)
             lr_image = cv2.resize(lr_image, (hr_image.shape[0], hr_image.shape[1]))
-            stacked = np.stask([hr_image, lr_image, lr_image], axis=-1)
+            stacked = np.stack([hr_image, lr_image, lr_image], axis=-1)
             stacked = self.crop_hr(image=stacked)["image"]
             hr_image = stacked[:, :, 0]
             lr_image = stacked[:, :, 1]
