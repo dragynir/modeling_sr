@@ -1,1 +1,1 @@
-from .benchmark_config_v2 import config
+from .glass_config import config
