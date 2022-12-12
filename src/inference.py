@@ -90,7 +90,7 @@ def validate(model, config: dataclass, tag: str, debug=False):
 if __name__ == "__main__":
     set_global_seed(config.seed)
 
-    model_path = "/home/d_korostelev/Projects/super_resolution/modeling_sr/checkpoints/experiment0_tomo_x4/runner.best.pth"
+    model_path = "/home/d_korostelev/Projects/super_resolution/modeling_sr/glass_checkpoints/experiment_0_glass/runner.best.pth"
     # add jit model
 
     model = UNet2D.create_from_config(config)
