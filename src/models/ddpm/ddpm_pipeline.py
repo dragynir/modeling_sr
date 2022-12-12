@@ -10,7 +10,7 @@ import PIL
 from typing import List, Optional, Union, Any
 import numpy as np
 import dataclasses as dc
-
+from tqdm import tqdm
 
 class BaseOutput(OrderedDict):
     """
@@ -167,7 +167,7 @@ class DDPMPipeline(DiffusionPipeline):
         # set step values
         self.scheduler.set_timesteps(num_train_timesteps)
 
-        for t in self.scheduler.timesteps:
+        for t in tqdm(self.scheduler.timesteps):
             # 1. predict noise model_output
             input_condition = torch.cat((noise_batch_image, condition_images), dim=1)
             # print(image_condition.shape, image.shape)
