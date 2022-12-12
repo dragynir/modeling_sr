@@ -107,7 +107,7 @@ class SuperResolutionTestDataset(SuperResolutionDataset):
 
         if "lr_path" in self.df.columns:
             lr_image = self._read_image_source(data_point.lr_path)
-            lr_image = cv2.resize(lr_image, (self.hr_size, self.hr_size))
+            lr_image = cv2.resize(lr_image, (self.test_size, self.test_size))
         else:
             hr_image = self.pad(image=hr_image)["image"]
             lr_size = self.test_size // (self.hr_size // self.lr_size)
